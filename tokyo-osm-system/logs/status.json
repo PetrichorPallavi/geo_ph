@@ -1,0 +1,1 @@
+{"status": "error", "message": "Command 'Get-Content sql/refresh_business_table.sql | docker exec -i tokyo_postgis psql -U postgres -d tokyo_osm' returned non-zero exit status 255.", "last_update": null}

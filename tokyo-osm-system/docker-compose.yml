@@ -1,0 +1,66 @@
+# Docker Compose configuration for Tokyo OSM System
+# 東京OSMシステムのDocker Compose構成
+services:
+  # -------------------------
+  # PostGIS Database / PostGIS データベース
+  # -------------------------
+  postgis:
+    image: postgis/postgis:15-3.4
+    container_name: tokyo_postgis
+    restart: always
+    environment:
+      POSTGRES_USER: postgres       # DBユーザー
+      POSTGRES_PASSWORD: postgres   # DBパスワード
+      POSTGRES_DB: tokyo_osm       # DB名
+    ports:
+      - "5433:5432"                 # ホスト:コンテナ ポートマッピング
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # 永続データボリューム
+      - ./data:/data                       # ホストデータディレクトリ
+
+  # -------------------------
+  # OSM Import Service / OSMデータインポート
+  # -------------------------
+  osm2pgsql:
+    image: iboates/osm2pgsql
+    container_name: tokyo_osm_import
+    depends_on:
+      - postgis                     # PostGIS が先に起動している必要あり
+    environment:
+      PGPASSWORD: postgres          # PostgreSQL パスワード
+    volumes:
+      - ./data:/data                # OSMデータをコンテナにマウント
+    entrypoint: >
+      osm2pgsql
+      -H postgis                    # DBホスト
+      -U postgres                   # DBユーザー
+      -d tokyo_osm                  # データベース名
+      --create                      # 新規作成モード
+      --slim                        # スリムモード（メモリ節約）
+      --hstore                       # hstoreタグを有効化
+      /data/kanto-latest.osm.pbf    # OSM PBFデータファイル
+
+  # -------------------------
+  # Incremental Updates / 増分更新サービス
+  # -------------------------
+  osm_updater:
+    image: iboates/osm2pgsql
+    depends_on:
+      - postgis
+    environment:
+      TZ: Asia/Tokyo                # タイムゾーン設定
+      PGPASSWORD: postgres
+    volumes:
+      - ./data:/data
+    entrypoint: >
+      osm2pgsql-replication
+      update
+      -d tokyo_osm
+      -H postgis
+      -U postgres
+
+# -------------------------
+# Volumes / 永続ボリューム
+# -------------------------
+volumes:
+  pgdata:

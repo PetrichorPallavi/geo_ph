@@ -1,0 +1,5 @@
+ Container tokyo_postgis Running 
+ Container tokyo-osm-system-osm_updater-run-5a3e0205072a Creating 
+ Container tokyo-osm-system-osm_updater-run-5a3e0205072a Created 
+2026-03-30 17:40:15 [INFO]: Using replication service 'https://download.geofabrik.de/asia/japan/kanto-updates'.
+2026-03-30 17:40:16 [INFO]: Database already up-to-date.
